@@ -137,129 +137,127 @@ const index = () => {
         </View>
       </View>
 
-      <ScrollView horizontal>
+      {/* <ScrollView horizontal> */}
+      <View
+        style={{
+          marginTop: 90,
+          marginHorizontal: 10,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
         <View
           style={{
-            marginTop: 90,
-            marginHorizontal: 10,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
+            backgroundColor: "white",
+            padding: 12,
+            borderRadius: 10,
+            width: "auto",
           }}
         >
-          <View
-            style={{
-              backgroundColor: "white",
-              padding: 12,
-              borderRadius: 10,
-              width: "auto",
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-            >
-              <View>
-                <Text
-                  style={{ color: "#FEBE10", fontSize: 15, fontWeight: "bold" }}
-                >
-                  Club{" "}
-                  <Text
-                    style={{
-                      color: "#034694",
-                      fontSize: 15,
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Ultimate
-                  </Text>
-                </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <View>
+              <Text
+                style={{ color: "#FEBE10", fontSize: 15, fontWeight: "bold" }}
+              >
+                Club{" "}
                 <Text
                   style={{
-                    fontSize: 12,
-                    fontWeight: "300",
-                    width: 130,
-                    marginTop: 10,
-                  }}
-                >
-                  Put your laundry on Cruise Control
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: "300",
-                    width: 130,
-                    marginTop: 3,
-                  }}
-                >
-                  Subscribe and get the benifits
-                </Text>
-              </View>
-              <Entypo name="triangle-right" size={24} color="#034694" />
-            </View>
-          </View>
-
-          <View
-            style={{
-              backgroundColor: "white",
-
-              paddingHorizontal: 10,
-              paddingVertical: 10,
-              borderRadius: 10,
-              marginRight: 20,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <Ionicons name="basket-outline" size={24} color="#034694" />
-              <View>
-                <Text
-                  style={{
-                    color: "#FEBE10",
+                    color: "#034694",
                     fontSize: 15,
                     fontWeight: "bold",
                   }}
                 >
-                  Place Your{" "}
-                  <Text
-                    style={{
-                      color: "#034694",
-                      fontSize: 15,
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Order
-                  </Text>
+                  Ultimate
                 </Text>
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "300",
+                  width: 130,
+                  marginTop: 10,
+                }}
+              >
+                Put your laundry on Cruise Control
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "300",
+                  width: 130,
+                  marginTop: 3,
+                }}
+              >
+                Subscribe and get the benifits
+              </Text>
+            </View>
+            <Entypo name="triangle-right" size={24} color="#034694" />
+          </View>
+        </View>
+
+        <View
+          style={{
+            backgroundColor: "white",
+
+            paddingHorizontal: 10,
+            paddingVertical: 10,
+            borderRadius: 10,
+            marginRight: 20,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <Ionicons name="basket-outline" size={24} color="#034694" />
+            <View>
+              <Text
+                style={{
+                  color: "#FEBE10",
+                  fontSize: 15,
+                  fontWeight: "bold",
+                }}
+              >
+                Place Your{" "}
                 <Text
                   style={{
-                    fontSize: 12,
-                    fontWeight: "300",
-                    width: 130,
-                    marginTop: 10,
+                    color: "#034694",
+                    fontSize: 15,
+                    fontWeight: "bold",
                   }}
                 >
-                  Select items from the catalogue below
+                  Order
                 </Text>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: "300",
-                    width: 130,
-                    marginTop: 3,
-                  }}
-                >
-                  and book your order. It's about time
-                </Text>
-              </View>
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "300",
+                  width: 130,
+                  marginTop: 10,
+                }}
+              >
+                Select items from the catalogue below
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "300",
+                  width: 130,
+                  marginTop: 3,
+                }}
+              >
+                and book your order. It's about time
+              </Text>
             </View>
           </View>
         </View>
-      </ScrollView>
+      </View>
+      {/* </ScrollView> */}
 
       <View
         style={{
