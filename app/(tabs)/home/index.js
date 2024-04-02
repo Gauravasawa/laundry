@@ -199,7 +199,6 @@ const index = () => {
         <View
           style={{
             backgroundColor: "white",
-
             paddingHorizontal: 10,
             paddingVertical: 10,
             borderRadius: 10,
