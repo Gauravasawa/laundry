@@ -9,6 +9,13 @@ import {
 import React, { useState } from "react";
 import { Ionicons, Feather, Octicons } from "@expo/vector-icons";
 import DressItem from "../../../component/DressItem";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addToCart,
+  decrementQuantity,
+  incrementQuantity,
+} from "../../../redux/CartReducer";
+import { useRouter } from "expo-router";
 
 const select = () => {
   const menData = [
@@ -132,296 +139,344 @@ const select = () => {
     },
   ];
 
+  const router = useRouter();
+
+  const cart = useSelector((state) => state.cart.cart);
+  const total = cart
+    ?.map((item) => item.item.price * item.item.quantity)
+    .reduce((prev, curr) => prev + curr, 0);
+
   const [options, setOptions] = useState("Men");
   const [selectedOption, setSelectedOption] = useState("Wash + fold");
 
   return (
-    <ScrollView>
-      <View style={{ backgroundColor: "#FEBE10", padding: 12 }}>
+    <>
+      <ScrollView>
+        <View style={{ backgroundColor: "#FEBE10", padding: 12 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
+            >
+              <Pressable
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  backgroundColor: "#A0A0A0",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Ionicons name="chevron-back" size={24} color="black" />
+              </Pressable>
+              <Text style={{ fontSize: 17 }}>Our Laundry List</Text>
+            </View>
+
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
+            >
+              <Feather name="search" size={24} color="#0066b2" />
+              <Octicons name="three-bars" size={24} color="#0066b2" />
+            </View>
+          </View>
+        </View>
+
         <View
           style={{
+            marginTop: 16,
+            padding: 10,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <Pressable
+            onPress={() => setSelectedOption("Wash + fold")}
+            style={{
+              backgroundColor: "white",
+              width: 80,
+              height: 80,
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: 5,
+              borderWidth: 1,
+              borderColor:
+                selectedOption == "Wash + fold" ? "#0066b2" : "transparent",
+            }}
+          >
+            <Image
+              style={{ width: 40, height: 40 }}
+              source={{
+                uri: "https://cdn-icons-png.flaticon.com/128/7769/7769829.png",
+              }}
+            />
+            <Text style={{ textAlign: "center", fontSize: 12, marginTop: 5 }}>
+              Wash + fold
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setSelectedOption("Wash + Iron")}
+            style={{
+              backgroundColor: "white",
+              width: 80,
+              height: 80,
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: 5,
+              borderWidth: 1,
+              borderColor:
+                selectedOption == "Wash + Iron" ? "#0066b2" : "transparent",
+            }}
+          >
+            <Image
+              style={{ width: 40, height: 40 }}
+              source={{
+                uri: "https://cdn-icons-png.flaticon.com/128/802/802826.png",
+              }}
+            />
+            <Text style={{ textAlign: "center", fontSize: 12, marginTop: 5 }}>
+              Wash + Iron
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setSelectedOption("Steam Iron")}
+            style={{
+              backgroundColor: "white",
+              width: 80,
+              height: 80,
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: 5,
+              borderWidth: 1,
+              borderColor:
+                selectedOption == "Steam Iron" ? "#0066b2" : "transparent",
+            }}
+          >
+            <Image
+              style={{ width: 40, height: 40 }}
+              source={{
+                uri: "https://cdn-icons-png.flaticon.com/128/12299/12299913.png",
+              }}
+            />
+            <Text style={{ textAlign: "center", fontSize: 12, marginTop: 5 }}>
+              Steam Iron
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setSelectedOption("Dry Clean")}
+            style={{
+              backgroundColor: "white",
+              width: 80,
+              height: 80,
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: 5,
+              borderWidth: 1,
+              borderColor:
+                selectedOption == "Dry Clean" ? "#0066b2" : "transparent",
+            }}
+          >
+            <Image
+              style={{ width: 40, height: 40 }}
+              source={{
+                uri: "https://cdn-icons-png.flaticon.com/128/7029/7029276.png",
+              }}
+            />
+            <Text style={{ textAlign: "center", fontSize: 12, marginTop: 5 }}>
+              Dry Clean
+            </Text>
+          </Pressable>
+        </View>
+
+        <View>
+          <View
+            style={{
+              padding: 10,
+              marginVertical: 20,
+              flexDirection: "row",
+              alignItems: "center,",
+              justifyContent: "space-around",
+              gap: 10,
+            }}
+          >
             <Pressable
+              onPress={() => setOptions("Men")}
+              style={{
+                padding: 10,
+                backgroundColor: options === "Men" ? "#0066b2" : "white",
+                width: 60,
+                borderRadius: 4,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "500",
+                  textAlign: "center",
+                  color: options === "Men" ? "white" : "black",
+                }}
+              >
+                Men
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setOptions("Women")}
+              style={{
+                padding: 10,
+                backgroundColor: options === "Women" ? "#0066b2" : "white",
+                width: 80,
+                borderRadius: 4,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "500",
+                  textAlign: "center",
+                  color: options === "Women" ? "white" : "black",
+                }}
+              >
+                Women
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setOptions("Kids")}
+              style={{
+                padding: 10,
+                backgroundColor: options === "Kids" ? "#0066b2" : "white",
+                width: 60,
+                borderRadius: 4,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "500",
+                  textAlign: "center",
+                  color: options === "Kids" ? "white" : "black",
+                }}
+              >
+                Kid's
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setOptions("Houseold")}
+              style={{
+                padding: 10,
+                backgroundColor: options === "Houseold" ? "#0066b2" : "white",
+                width: 90,
+                borderRadius: 4,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "500",
+                  textAlign: "center",
+                  color: options === "Houseold" ? "white" : "black",
+                }}
+              >
+                Houseold
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={{ marginHorizontal: 10 }}>
+          {options === "Men" && (
+            <View>
+              {menData?.map((item, index) => (
+                <DressItem
+                  item={item}
+                  selectedOption={selectedOption}
+                  key={index}
+                />
+              ))}
+            </View>
+          )}
+
+          {options === "Women" && (
+            <View>
+              {womenData?.map((item, index) => (
+                <DressItem
+                  item={item}
+                  selectedOption={selectedOption}
+                  key={index}
+                />
+              ))}
+            </View>
+          )}
+
+          {options === "Kids" && (
+            <View>
+              {kidsData?.map((item, index) => (
+                <DressItem
+                  item={item}
+                  selectedOption={selectedOption}
+                  key={index}
+                />
+              ))}
+            </View>
+          )}
+
+          {options === "Houseold" && (
+            <View>
+              {houseData?.map((item, index) => (
+                <DressItem
+                  item={item}
+                  selectedOption={selectedOption}
+                  key={index}
+                />
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {cart.length > 0 && (
+        <Pressable style={{ backgroundColor: "#E0E0E0", padding: 15 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View
               style={{
                 width: 30,
                 height: 30,
                 borderRadius: 15,
-                backgroundColor: "#A0A0A0",
+                backgroundColor: "white",
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              <Ionicons name="chevron-back" size={24} color="black" />
+              <Ionicons name="basket-outline" size={24} color="black" />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: "500" }}>
+                Basket Total Rs {total}
+              </Text>
+              <Text style={{ fontSize: 13, fontWeight: "500", marginTop: 3 }}>
+                You have {cart.length} items saved in your basket
+              </Text>
+            </View>
+
+            <Pressable
+              onPress={() => router.push("/basket/cart")}
+              style={{ padding: 10, backgroundColor: "white", borderRadius: 4 }}
+            >
+              <Text>View</Text>
             </Pressable>
-            <Text style={{ fontSize: 17 }}>Our Laundry List</Text>
           </View>
-
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Feather name="search" size={24} color="#0066b2" />
-            <Octicons name="three-bars" size={24} color="#0066b2" />
-          </View>
-        </View>
-      </View>
-
-      <View
-        style={{
-          marginTop: 16,
-          padding: 10,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Pressable
-          onPress={() => setSelectedOption("Wash + fold")}
-          style={{
-            backgroundColor: "white",
-            width: 80,
-            height: 80,
-            justifyContent: "center",
-            alignItems: "center",
-            borderRadius: 5,
-            borderWidth: 1,
-            borderColor:
-              selectedOption == "Wash + fold" ? "#0066b2" : "transparent",
-          }}
-        >
-          <Image
-            style={{ width: 40, height: 40 }}
-            source={{
-              uri: "https://cdn-icons-png.flaticon.com/128/7769/7769829.png",
-            }}
-          />
-          <Text style={{ textAlign: "center", fontSize: 12, marginTop: 5 }}>
-            Wash + fold
-          </Text>
         </Pressable>
-
-        <Pressable
-          onPress={() => setSelectedOption("Wash + Iron")}
-          style={{
-            backgroundColor: "white",
-            width: 80,
-            height: 80,
-            justifyContent: "center",
-            alignItems: "center",
-            borderRadius: 5,
-            borderWidth: 1,
-            borderColor:
-              selectedOption == "Wash + Iron" ? "#0066b2" : "transparent",
-          }}
-        >
-          <Image
-            style={{ width: 40, height: 40 }}
-            source={{
-              uri: "https://cdn-icons-png.flaticon.com/128/802/802826.png",
-            }}
-          />
-          <Text style={{ textAlign: "center", fontSize: 12, marginTop: 5 }}>
-            Wash + Iron
-          </Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => setSelectedOption("Steam Iron")}
-          style={{
-            backgroundColor: "white",
-            width: 80,
-            height: 80,
-            justifyContent: "center",
-            alignItems: "center",
-            borderRadius: 5,
-            borderWidth: 1,
-            borderColor:
-              selectedOption == "Steam Iron" ? "#0066b2" : "transparent",
-          }}
-        >
-          <Image
-            style={{ width: 40, height: 40 }}
-            source={{
-              uri: "https://cdn-icons-png.flaticon.com/128/12299/12299913.png",
-            }}
-          />
-          <Text style={{ textAlign: "center", fontSize: 12, marginTop: 5 }}>
-            Steam Iron
-          </Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => setSelectedOption("Dry Clean")}
-          style={{
-            backgroundColor: "white",
-            width: 80,
-            height: 80,
-            justifyContent: "center",
-            alignItems: "center",
-            borderRadius: 5,
-            borderWidth: 1,
-            borderColor:
-              selectedOption == "Dry Clean" ? "#0066b2" : "transparent",
-          }}
-        >
-          <Image
-            style={{ width: 40, height: 40 }}
-            source={{
-              uri: "https://cdn-icons-png.flaticon.com/128/7029/7029276.png",
-            }}
-          />
-          <Text style={{ textAlign: "center", fontSize: 12, marginTop: 5 }}>
-            Dry Clean
-          </Text>
-        </Pressable>
-      </View>
-
-      <View>
-        <View
-          style={{
-            padding: 10,
-            marginVertical: 20,
-            flexDirection: "row",
-            alignItems: "center,",
-            justifyContent: "space-around",
-            gap: 10,
-          }}
-        >
-          <Pressable
-            onPress={() => setOptions("Men")}
-            style={{
-              padding: 10,
-              backgroundColor: options === "Men" ? "#0066b2" : "white",
-              width: 60,
-              borderRadius: 4,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "500",
-                textAlign: "center",
-                color: options === "Men" ? "white" : "black",
-              }}
-            >
-              Men
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setOptions("Women")}
-            style={{
-              padding: 10,
-              backgroundColor: options === "Women" ? "#0066b2" : "white",
-              width: 80,
-              borderRadius: 4,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "500",
-                textAlign: "center",
-                color: options === "Women" ? "white" : "black",
-              }}
-            >
-              Women
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setOptions("Kids")}
-            style={{
-              padding: 10,
-              backgroundColor: options === "Kids" ? "#0066b2" : "white",
-              width: 60,
-              borderRadius: 4,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "500",
-                textAlign: "center",
-                color: options === "Kids" ? "white" : "black",
-              }}
-            >
-              Kid's
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setOptions("Houseold")}
-            style={{
-              padding: 10,
-              backgroundColor: options === "Houseold" ? "#0066b2" : "white",
-              width: 90,
-              borderRadius: 4,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "500",
-                textAlign: "center",
-                color: options === "Houseold" ? "white" : "black",
-              }}
-            >
-              Houseold
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={{ marginHorizontal: 10 }}>
-        {options === "Men" && (
-          <View>
-            {menData?.map((item, index) => (
-              <DressItem
-                item={item}
-                selectedOption={selectedOption}
-                key={index}
-              />
-            ))}
-          </View>
-        )}
-
-        {options === "Women" && (
-          <View>
-            {womenData?.map((item, index) => (
-              <DressItem
-                item={item}
-                selectedOption={selectedOption}
-                key={index}
-              />
-            ))}
-          </View>
-        )}
-
-        {options === "Kids" && (
-          <View>
-            {kidsData?.map((item, index) => (
-              <DressItem
-                item={item}
-                selectedOption={selectedOption}
-                key={index}
-              />
-            ))}
-          </View>
-        )}
-
-        {options === "Houseold" && (
-          <View>
-            {houseData?.map((item, index) => (
-              <DressItem
-                item={item}
-                selectedOption={selectedOption}
-                key={index}
-              />
-            ))}
-          </View>
-        )}
-      </View>
-    </ScrollView>
+      )}
+    </>
   );
 };
 
