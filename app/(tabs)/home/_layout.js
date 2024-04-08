@@ -6,7 +6,7 @@ export default function Layout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="address" />
-        {/* <Stack.Screen name="cart" /> */}
+        <Stack.Screen name="addAddress" />
       </Stack>
     </>
   );

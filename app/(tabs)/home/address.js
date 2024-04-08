@@ -1,33 +1,46 @@
 import {
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
-  View,
-  ScrollView,
   TouchableOpacity,
+  View,
+  Image,
 } from "react-native";
-import React, { useState } from "react";
-import {
-  Ionicons,
-  Entypo,
-  AntDesign,
-  FontAwesome,
-  EvilIcons,
-} from "@expo/vector-icons";
+import React, { useState, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
+import { EvilIcons } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import moment from "moment";
+import { useRouter } from "expo-router";
+import { addDoc, collection, getDoc, getDocs, query } from "firebase/firestore";
+import { auth, db } from "../../../firebase";
+import { useDispatch, useSelector } from "react-redux";
+import { cleanCart } from "../../../redux/CartReducer";
 
 const address = () => {
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const cart = useSelector((state) => state.cart.cart);
+  const total = cart
+    ?.map((item) => item.item.price * item.item.quantity)
+    .reduce((prev, curr) => prev + curr, 0);
   const [step, setStep] = useState(1);
   const [currentDate, setCurrentDate] = useState(moment());
   const [deliveryDate, setDeliveryDate] = useState(moment());
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedDeliveryTime, setSelectedDeliveryTime] = useState(null);
+  const [addresses, setAddresses] = useState([]);
   const [selectedDate, setSelectedDate] = useState(moment());
-
+  const [selectedAdress, setSelectedAdress] = useState("");
+  console.log("addresses", addresses);
+  const userUid = auth?.currentUser.uid;
+  console.log("userId", userUid);
   const handleBack = () => {
     setStep((prevStep) => (prevStep > 1 ? prevStep - 1 : prevStep));
   };
-
   const pickupTimeOptions = [
     { startTime: "6:30 AM", endTime: "9:00 AM" },
     { startTime: "9:00 AM", endTime: "11:30 AM" },
@@ -35,22 +48,64 @@ const address = () => {
     { startTime: "7:30 PM", endTime: "10:00 PM" },
   ];
 
+  useEffect(() => {
+    const fetchAddress = async () => {
+      try {
+        const addressCollectionRef = collection(
+          db,
+          "users",
+          userUid,
+          "userAddresses"
+        );
+
+        const addressQuery = query(addressCollectionRef);
+
+        const querySnapshot = await getDocs(addressQuery);
+        const addresses = [];
+
+        querySnapshot.forEach((doc) => {
+          addresses.push({ id: doc.id, ...doc.data() });
+        });
+        setAddresses(addresses);
+      } catch (error) {
+        console.log("Error", error);
+      }
+    };
+
+    fetchAddress();
+  }, []);
+
   const handleNext = () => {
     setStep((prevStep) => {
       const nextStep = prevStep + 1;
-      console.log("nextStep", nextStep);
+      console.log("next step", nextStep);
 
       //check if next step is equal to 4
-      if (nextStep === 5) {
-        //call the place order function
+      if (nextStep == 5) {
+        // call the place order function
+        placeOrder();
       }
 
       return nextStep;
     });
   };
+  console.log(step);
+  const placeOrder = async () => {
+    dispatch(cleanCart());
 
-  console.log("step", step);
+    router.replace("/(tabs)/order");
 
+    const ordersCollectionRef = collection(db, "users", userUid, "orders");
+
+    const orderDocRef = await addDoc(ordersCollectionRef, {
+      items: { ...cart },
+      address: selectedAdress,
+      pickuptime: `${selectedTime.startTime} - ${selectedTime.endTime}`,
+      deliveryTime: `${selectedDeliveryTime.startTime} - ${selectedDeliveryTime.endTime}`,
+    });
+
+    console.log("order placed successfully!", orderDocRef.id);
+  };
   const getNext6Days = () => {
     const nextDays = [];
     for (let i = 0; i < 5; i++) {
@@ -58,6 +113,22 @@ const address = () => {
 
       nextDays.push(nextDate);
     }
+
+    return nextDays;
+  };
+  const getNextDays = () => {
+    const nextDays = [];
+    let startDate = moment().add(1, "days");
+
+    if (moment(selectedDate).isSameOrBefore(moment().add(2, "days"), "day")) {
+      startDate = moment(selectedDate).add(2, "days");
+    }
+
+    for (let i = 0; i < 5; i++) {
+      const nextDate = moment(startDate).add(i, "days");
+      nextDays.push(nextDate);
+    }
+
     return nextDays;
   };
   const renderDateButtons = () => {
@@ -74,8 +145,10 @@ const address = () => {
           backgroundColor: date.isSame(selectedDate, "day")
             ? "#0066b2"
             : "white",
-          borderColor: date.isSame(selectedDate, "day") ? "#FEBE10" : "#0066b2",
-          borderWidth: date.isSame(selectedDate, "day") ? 2 : 1,
+          borderColor: date.isSame(selectedDate, "day")
+            ? "transparent"
+            : "#0066b2",
+          borderWidth: date.isSame(selectedDate, "day") ? 0 : 1,
         }}
       >
         <Text
@@ -101,23 +174,6 @@ const address = () => {
     ));
   };
 
-  const getNextDays = () => {
-    const nextDays = [];
-
-    let startDate = moment().add(1, "days");
-
-    if (moment(selectedDate).isSameOrBefore(moment().add(2, "days"), "day")) {
-      startDate = moment(selectedDate).add(2, "days");
-    }
-
-    for (let i = 0; i < 5; i++) {
-      const nextDate = moment(startDate).add(i, "days");
-      nextDays.push(nextDate);
-    }
-
-    return nextDays;
-  };
-
   const renderButtons = () => {
     const next6Days = getNextDays();
 
@@ -131,8 +187,10 @@ const address = () => {
           backgroundColor: date.isSame(deliveryDate, "day")
             ? "#0066b2"
             : "white",
-          borderColor: date.isSame(deliveryDate, "day") ? "#FEBE10" : "#0066b2",
-          borderWidth: date.isSame(deliveryDate, "day") ? 2 : 1,
+          borderColor: date.isSame(deliveryDate, "day")
+            ? "transparent"
+            : "#0066b2",
+          borderWidth: date.isSame(deliveryDate, "day") ? 0 : 1,
         }}
         onPress={() => setDeliveryDate(date)}
         key={index}
@@ -160,27 +218,27 @@ const address = () => {
       </TouchableOpacity>
     ));
   };
-
   const renderPickUpTimeOptions = () => {
     if (selectedDate) {
       const isCurrentDate = selectedDate.isSame(currentDate, "day");
+
       const currentTime = moment();
 
-      return pickupTimeOptions.map((options, index) => {
+      return pickupTimeOptions.map((option, index) => {
+        console.log(option);
         const startTime = moment(
-          selectedDate?.format("YYYY-MM-DD") + " " + options.startTime,
+          selectedDate.format("YYYY-MM-DD") + " " + option.startTime,
           "YYYY-MM-DD LT"
         );
 
         //check if the time slot is past the current time
-
         const isTimeSlotPast = isCurrentDate && startTime.isBefore(currentDate);
 
         return (
           <TouchableOpacity
             onPress={() => {
               if (!isTimeSlotPast) {
-                setSelectedTime(options);
+                setSelectedTime(option);
               }
             }}
             style={{
@@ -191,42 +249,28 @@ const address = () => {
               borderRadius: 5,
               backgroundColor:
                 selectedTime &&
-                selectedTime.startTime === options.startTime &&
-                selectedTime.endTime === options.endTime
+                selectedTime.startTime === option.startTime &&
+                selectedTime.endTime === option.endTime
                   ? "#0066b2"
                   : "white",
-              borderColor:
-                selectedTime &&
-                selectedTime.startTime === options.startTime &&
-                selectedTime.endTime === options.endTime
-                  ? "#FEBE10"
-                  : "#0066b2",
-              borderWidth:
-                selectedTime &&
-                selectedTime.startTime === options.startTime &&
-                selectedTime.endTime === options.endTime
-                  ? 2
-                  : 1,
             }}
           >
             <Text
               style={{
                 textAlign: "center",
-                fontSize: 13,
                 color:
                   selectedTime &&
-                  selectedTime.startTime === options.startTime &&
-                  selectedTime.endTime === options.endTime
+                  selectedTime.startTime === option.startTime &&
+                  selectedTime.endTime === option.endTime
                     ? "white"
                     : "black",
               }}
-            >{`${options.startTime} - ${options.endTime}`}</Text>
+            >{`${option.startTime} - ${option.endTime}`}</Text>
           </TouchableOpacity>
         );
       });
     }
   };
-
   const renderTimeOptions = () => {
     return pickupTimeOptions.map((option, index) => {
       console.log(option);
@@ -269,7 +313,6 @@ const address = () => {
       );
     });
   };
-
   return (
     <View style={{ flex: 1 }}>
       <View
@@ -378,74 +421,79 @@ const address = () => {
         <ScrollView>
           {step == 1 && (
             <View>
-              {/* Map Over all the address */}
+              {/* Map  over all the addresses */}
               <Pressable
                 style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
               >
                 <AntDesign name="plus" size={24} color="black" />
-                <Pressable>
-                  <Text style={{ fontSize: 16 }}>Add Address</Text>
+                <Pressable onPress={() => router.push("/home/add")}>
+                  <Text style={{ fontSize: 16 }}>Add address</Text>
                 </Pressable>
               </Pressable>
+
               <View>
-                {/* Map over the address */}
-                <Pressable
-                  style={{
-                    backgroundColor: "white",
-                    padding: 10,
-                    marginVertical: 10,
-                    borderRadius: 15,
-                    borderWidth: 1,
-                    borderColor: "#0066b2",
-                  }}
-                >
-                  <View
+                {/* map over the addresses */}
+                {addresses?.map((item, index) => (
+                  <Pressable
+                    onPress={() => setSelectedAdress(item)}
+                    key={index}
                     style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
+                      backgroundColor: "white",
+                      padding: 10,
+                      marginVertical: 10,
+                      borderRadius: 15,
+                      borderWidth: selectedAdress === item ? 2 : 1,
+                      borderColor: "#0066b2",
                     }}
                   >
                     <View
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        gap: 10,
+                        justifyContent: "space-between",
                       }}
                     >
-                      <Ionicons
-                        name="location-outline"
-                        size={24}
-                        color="#0066b2"
-                      />
-                      <Text style={{ fontSize: 17, fontWeight: "500" }}>
-                        Home
-                      </Text>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 10,
+                        }}
+                      >
+                        <Ionicons
+                          name="location-outline"
+                          size={24}
+                          color="#0066b2"
+                        />
+                        <Text style={{ fontSize: 17, fontWeight: "500" }}>
+                          Home
+                        </Text>
+                      </View>
+                      <FontAwesome name="flag" size={24} color="#0066b2" />
                     </View>
-                    <FontAwesome name="flag" size={22} color="#0066b2" />
-                  </View>
-                  <Text
-                    style={{
-                      marginTop: 10,
-                      fontSize: 15,
-                      fontWeight: "500",
-                      width: "95%",
-                    }}
-                  >
-                    #43/82 RajHans Colony near om gurdev Mangal karayalya,
-                    hasnapur Road
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 6,
-                      color: "grey",
-                      fontSize: 15,
-                      fontWeight: "500",
-                    }}
-                  >
-                    Loni BK, 413736
-                  </Text>
-                </Pressable>
+
+                    <Text
+                      style={{
+                        marginTop: 10,
+                        fontSize: 15,
+                        fontWeight: "500",
+                        width: "95%",
+                      }}
+                    >
+                      {item?.houseNo} {item?.landmark}
+                    </Text>
+                    <Text
+                      style={{
+                        marginTop: 6,
+                        color: "gray",
+                        fontSize: 15,
+                        fontWeight: "500",
+                      }}
+                    >
+                      Bangalore {item?.postalCode}
+                    </Text>
+                  </Pressable>
+                ))}
               </View>
             </View>
           )}
@@ -460,15 +508,11 @@ const address = () => {
               }}
             >
               <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 10,
-                }}
+                style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
               >
                 <EvilIcons name="location" size={24} color="black" />
                 <View>
-                  <Text style={{ fontSize: 16 }}>Pick up Slot</Text>
+                  <Text style={{ fontSize: 16 }}>Pick up slot</Text>
                   <Text
                     style={{ marginTop: 4, fontWeight: "500", fontSize: 16 }}
                   >
@@ -578,39 +622,238 @@ const address = () => {
                   borderRadius: 10,
                 }}
               >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                  }}
-                >
+                <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
                   {renderButtons()}
                 </View>
 
                 <Text style={{ marginHorizontal: 10 }}>
                   Pickup Time Options
                 </Text>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                  }}
-                >
+                <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
                   {renderTimeOptions()}
                 </View>
               </View>
             </>
           )}
+
+          {step == 4 && (
+            <View
+              style={{
+                marginTop: 10,
+                backgroundColor: "white",
+                borderRadius: 10,
+              }}
+            >
+              <View style={{ padding: 10 }}>
+                <Text style={{ fontSize: 16, fontWeight: "600" }}>
+                  Your Cart
+                </Text>
+              </View>
+
+              <View style={{ marginHorizontal: 12 }}>
+                {cart?.map((item, index) => (
+                  <Pressable
+                    style={{
+                      padding: 10,
+                      backgroundColor: "white",
+                      marginVertical: 13,
+                      flexDirection: "row",
+                      gap: 12,
+                      borderRadius: 5,
+                    }}
+                    key={index}
+                  >
+                    <View>
+                      <Image
+                        style={{ width: 40, height: 40 }}
+                        source={{ uri: item?.item?.image }}
+                      />
+                    </View>
+
+                    <View style={{ flex: 1 }}>
+                      <Text>{item?.item.name}</Text>
+                      <Text>{item?.item.price * item?.item.quantity}</Text>
+                    </View>
+
+                    <Pressable>
+                      <AntDesign name="pluscircleo" size={24} color="#89CFF0" />
+                    </Pressable>
+                  </Pressable>
+                ))}
+              </View>
+              <View
+                style={{
+                  backgroundColor: "#0066b2",
+                  padding: 10,
+                  borderBottomLeftRadius: 6,
+                  borderBottomRightRadius: 6,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginVertical: 10,
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Total Amount
+                  </Text>
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Rs {total}
+                  </Text>
+                </View>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginVertical: 10,
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Promo Code
+                  </Text>
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Rs 0
+                  </Text>
+                </View>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginVertical: 10,
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Delivery Charges
+                  </Text>
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Rs 25
+                  </Text>
+                </View>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginVertical: 10,
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Total Payable
+                  </Text>
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Rs {total + 25}
+                  </Text>
+                </View>
+              </View>
+
+              <View
+                style={{
+                  backgroundColor: "#0066b2",
+                  padding: 10,
+                  marginVertical: 10,
+                  borderRadius: 6,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginVertical: 10,
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    TOTAL AMOUNT
+                  </Text>
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Rs {total}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginVertical: 10,
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    TAXES AND CHARGES
+                  </Text>
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Rs 150
+                  </Text>
+                </View>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginVertical: 10,
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    TOTAL PAYABLE
+                  </Text>
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Rs {total + 25 + 150}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
         </ScrollView>
       </View>
+
+      {cart.length > 0 && (
+        <Pressable style={{ backgroundColor: "#E0E0E0", padding: 10 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 15,
+                backgroundColor: "white",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Ionicons name="basket-outline" size={24} color="black" />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: "500" }}>
+                Basket Total Rs {total}
+              </Text>
+              <Text style={{ fontSize: 13, fontWeight: "500", marginTop: 3 }}>
+                You have {cart.length} items saved in your basket
+              </Text>
+            </View>
+
+            <Pressable
+              onPress={() => router.push("/basket/cart")}
+              style={{ padding: 10, backgroundColor: "white", borderRadius: 4 }}
+            >
+              <Text>View</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      )}
 
       <View
         style={{
           backgroundColor: "white",
-          flexDirection: "row",
           padding: 15,
+          flexDirection: "row",
           alignItems: "center",
           gap: 12,
           marginTop: "auto",
@@ -628,7 +871,6 @@ const address = () => {
         >
           <Text style={{ textAlign: "center", fontWeight: "500" }}>Back</Text>
         </Pressable>
-
         <Pressable
           onPress={handleNext}
           style={{
@@ -641,7 +883,7 @@ const address = () => {
           <Text
             style={{ textAlign: "center", color: "white", fontWeight: "500" }}
           >
-            {step === 4 ? "Place Order" : "Next"}
+            {step == 4 ? "Place Order" : "Next"}
           </Text>
         </Pressable>
       </View>
